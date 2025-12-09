@@ -1,0 +1,11 @@
+package com.springsecurity.Repository;
+
+import com.springsecurity.entities.Doctor;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface DoctorRepository extends JpaRepository<Doctor,Long> {
+    //Optional<Doctor> findByUsername(String username);
+
+}
