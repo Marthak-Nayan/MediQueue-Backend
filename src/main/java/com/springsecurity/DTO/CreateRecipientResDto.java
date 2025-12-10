@@ -4,15 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateDoctorRequestDto {
-    private String doctorName;
+public class CreateRecipientResDto {
+    private Long id;
+    private String doctornane;
     private String username;
-    private String password;
-    private List<String> speciality;
-    private String role;
 }

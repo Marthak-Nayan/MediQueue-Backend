@@ -9,10 +9,11 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateDoctorRequestDto {
-    private String doctorName;
+public class CreateRecipientReqDto {
+
+    private String recipientName;
     private String username;
     private String password;
-    private List<String> speciality;
     private String role;
+
 }

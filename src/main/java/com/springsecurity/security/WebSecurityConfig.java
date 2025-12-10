@@ -15,10 +15,14 @@ import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebSecurityConfig {
+
+    private final CoutomUserDetailsService coutomUserDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,20 +35,19 @@ public class WebSecurityConfig {
                         .requestMatchers("/adminDashBoard/**").hasRole("ADMIN")
                         .requestMatchers("/doctorDashBoard/**").hasRole("DOCTOR")
                         .requestMatchers("/recipientDashBoard/**").hasRole("RECIPIENT")
-                        /*.requestMatchers(HttpMethod.DELETE, "/admin/**")
-                            .hasAnyAuthority(APPOINTMENT_DELETE.name(),
-                                USER_MANAGE.name())
-                        .requestMatchers("/admin/**").hasRole(ADMIN.name())
-                        .requestMatchers("/doctors/**").hasAnyRole(DOCTOR.name(), ADMIN.name())*/
-                        .anyRequest().authenticated()
-                );
-
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         //.formLogin(Customizer.withDefaults());
         return http.build();
     }
 }
 
-    /*
+    /*.userDetailsService(coutomUserDetailsService)
+    .requestMatchers(HttpMethod.DELETE, "/admin/**")
+                            .hasAnyAuthority(APPOINTMENT_DELETE.name(),
+                                USER_MANAGE.name())
+                        .requestMatchers("/admin/**").hasRole(ADMIN.name())
+                        .requestMatchers("/doctors/**").hasAnyRole(DOCTOR.name(), ADMIN.name())
     //IMemoryUserDetailsManager use
     //@Bean
     UserDetailsService userDetailsService(){

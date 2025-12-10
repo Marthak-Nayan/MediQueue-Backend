@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class AuthService {
 
         String token = authUtils.generateAccessToken(user);
 
-        return new LoginResponseDto(token, user.getId());
+        return new LoginResponseDto(token, user.getRole(),user.getId());
     }
 
     public SignUpResponseDto signup(SignUpRequestDto signupRequestDto) {
@@ -60,29 +61,5 @@ public class AuthService {
                 .build()
         );
         return new SignUpResponseDto(user.getId(),placeName.getPlacename(), user.getUsername());
-    }
-
-    public CreateDoctorRespDto createDoctor(CreateDoctorRequestDto createDoctorRequestDto){
-        User user = userRepository.findByUsername(createDoctorRequestDto.getUsername()).orElse(null);
-        if(user != null) throw new IllegalArgumentException("User Already Exist");
-
-        user = userRepository.save(User.builder()
-                .role(createDoctorRequestDto.getRole())
-                .username(createDoctorRequestDto.getUsername())
-                .password(passwordEncoder.encode(createDoctorRequestDto.getPassword()))
-                .build()
-        );
-
-        PlaceName p = placeRepository.findById(createDoctorRequestDto.getPlaceId()).orElse(null);
-
-        Doctor doctor = doctorRepository.save(Doctor.builder()
-                .doctorname(createDoctorRequestDto.getDoctorName())
-                .user(user)
-                .placeName(p)
-                .specialties(createDoctorRequestDto.getSpeciality())
-                .build()
-        );
-
-        return new CreateDoctorRespDto(doctor.getId(), doctor.getDoctorname(), doctor.getUser().getUsername());
     }
 }

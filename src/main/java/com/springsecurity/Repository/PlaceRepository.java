@@ -10,6 +10,8 @@ public interface PlaceRepository extends JpaRepository<PlaceName,Long> {
 
     Optional<PlaceName> findByPlacename(String placename);
 
-    Optional<PlaceName> findById(Long ID);
+    Optional<PlaceName> findById(Long placeId);
+
+    Optional<PlaceName> findByUser(User userId);
 
 }
