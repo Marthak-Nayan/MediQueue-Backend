@@ -8,8 +8,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/recipientDashBoard")
+@RequestMapping("/recipient")
 public class RecipientController {
+
+    @GetMapping("/recipientDashBoard")
+    public String recipientDashBoard(){
+        return "recipientDashBoard";
+    }
 
     @GetMapping("/getRecipientProfile")
     public String recipient(Authentication authentication){

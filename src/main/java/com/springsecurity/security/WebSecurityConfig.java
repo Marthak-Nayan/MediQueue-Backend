@@ -1,5 +1,6 @@
 package com.springsecurity.security;
 
+import com.springsecurity.error.CoustomAccessDeniedHandler;
 import com.springsecurity.services.CoutomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -24,23 +30,50 @@ public class WebSecurityConfig {
     private final CoutomUserDetailsService coutomUserDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
 
+    private final CoustomAccessDeniedHandler coustomAccessDeniedHandler;
+    private final CustomAuthEntryPoint customAuthEntryPoint;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrfConfig -> csrfConfig.disable())
-                .sessionManagement(sessionConfig ->
-                        sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))   // ✅ MUST ADD THIS
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(coustomAccessDeniedHandler)   // 403
+                        .authenticationEntryPoint(customAuthEntryPoint)  // 401
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**", "/auth/**").permitAll()
-                        .requestMatchers("/adminDashBoard/**").hasRole("ADMIN")
-                        .requestMatchers("/doctorDashBoard/**").hasRole("DOCTOR")
-                        .requestMatchers("/recipientDashBoard/**").hasRole("RECIPIENT")
-                        .anyRequest().authenticated())
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/admin/adminDashBoard/**").hasRole("ADMIN")
+                        .requestMatchers("/doctor/doctorDashBoard/**").hasRole("DOCTOR")
+                        .requestMatchers("/recipient/recipientDashBoard/**").hasRole("RECIPIENT")
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        //.formLogin(Customizer.withDefaults());
+
         return http.build();
     }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
 }
+
+
 
     /*.userDetailsService(coutomUserDetailsService)
     .requestMatchers(HttpMethod.DELETE, "/admin/**")

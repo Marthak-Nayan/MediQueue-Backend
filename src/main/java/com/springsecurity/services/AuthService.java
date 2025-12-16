@@ -16,6 +16,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.Exception;
 
 import java.util.Map;
 import java.util.Optional;
@@ -28,11 +31,10 @@ public class AuthService {
     private final AuthUtils authUtils;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DoctorRepository doctorRepository;
     private final PlaceRepository placeRepository;
 
+    @Transactional(rollbackFor = Exception.class)
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword())
         );
@@ -44,22 +46,32 @@ public class AuthService {
         return new LoginResponseDto(token, user.getRole(),user.getId());
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public SignUpResponseDto signup(SignUpRequestDto signupRequestDto) {
         User user = userRepository.findByUsername(signupRequestDto.getUsername()).orElse(null);
 
         if(user != null) throw new IllegalArgumentException("User Already Exist");
 
          user = userRepository.save(User.builder()
-                .role(signupRequestDto.getRole())
+                .role("ROLE_ADMIN")
                 .username(signupRequestDto.getUsername())
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
                 .build()
         );
         PlaceName placeName = placeRepository.save(PlaceName.builder()
-                .placename(signupRequestDto.getPlace_name())
+                .placename(signupRequestDto.getPlacename())
+                .email(signupRequestDto.getEmail())
+                .mobileNo(signupRequestDto.getMobile())
+                .address(signupRequestDto.getAddress())
                 .user(user)
                 .build()
         );
+
+        // Simulate internal error
+        if ("error".equals(signupRequestDto.getPlacename())) {
+            throw new RuntimeException("Internal error! Rolling back...");
+        }
+
         return new SignUpResponseDto(user.getId(),placeName.getPlacename(), user.getUsername());
     }
 }

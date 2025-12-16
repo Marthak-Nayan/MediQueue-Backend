@@ -12,11 +12,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/adminDashBoard")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminController {
 
     private final AdminServices adminServices;
+
+    @GetMapping("/adminDashBoard")
+    public String adminDashBoard(){
+
+        return "adminDashBoard";
+    }
 
     @GetMapping("/getAdminProfile")
     public String adminDashBoard(Authentication authentication) {

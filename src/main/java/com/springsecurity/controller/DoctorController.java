@@ -8,8 +8,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/doctorDashBoard")
+@RequestMapping("/doctor")
 public class DoctorController {
+
+    @GetMapping("/doctorDashBoard")
+    public String doctorDashBoard(){
+        return "doctorDashBoard";
+    }
 
     @GetMapping("/getDoctorProfile")
     public String doctor(Authentication authentication){

@@ -9,8 +9,11 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignUpRequestDto {
-    private String place_name;
+    private String placename;
     private String username;
     private String password;
+    private String email;
+    private Long mobile;
+    private String address;
     private String role;
 }

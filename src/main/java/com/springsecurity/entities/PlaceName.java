@@ -25,6 +25,15 @@ public class PlaceName {
     @Column(nullable = false,unique = true)
     private String placename;
 
+    @Column(nullable = false,unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private Long mobileNo;
+
+    @Column(nullable = false)
+    private String address;
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;

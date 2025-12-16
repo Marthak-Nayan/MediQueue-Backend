@@ -1,6 +1,7 @@
 package com.springsecurity.security;
 
 import com.springsecurity.Repository.PlaceRepository;
+import com.springsecurity.Repository.UserRepository;
 import com.springsecurity.entities.PlaceName;
 import com.springsecurity.entities.User;
 import io.jsonwebtoken.Claims;
@@ -22,16 +23,17 @@ public class AuthUtils {
     private String jwtSecretKey;
 
     private final PlaceRepository placeRepository;
+    private final UserRepository userRepository;
 
     private SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateAccessToken(User user) {
-
+        User user1 = userRepository.findByUsername(user.getUsername()).orElseThrow();
         return Jwts.builder()
                 .subject(user.getUsername())
-                .claim("userId", user.getId())
+                .claim("userId", user.getId().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000*60*10))
                 .signWith(getSecretKey())
