@@ -2,14 +2,18 @@ package com.springsecurity.security;
 
 import com.springsecurity.Repository.UserRepository;
 import com.springsecurity.entities.User;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -23,7 +27,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
     private final AuthUtils authUtils;
-    private final HandlerExceptionResolver handlerExceptionResolver;
+    private final AuthenticationEntryPoint authenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -31,33 +35,54 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("incoming request: {}", request.getRequestURI());
+        String path = request.getServletPath();
+        log.info("Incoming request: {}", path);
 
-        final String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // Public endpoints
+        if ("/auth/login".equals(path) || "/auth/signup".equals(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.split("Bearer ")[1];
-
-
         try {
-            String username = authUtils.getUsernameFromToken(token);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User user = userRepository.findByUsername(username).orElseThrow();
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user,
-                                null,
-                                user.getAuthorities()
-                        );
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new BadCredentialsException("JWT token is missing");
             }
+
+            String token = authHeader.substring(7);
+
+            // validate() may throw JwtException
+            authUtils.validateToken(token);
+
+            String username = authUtils.getUsernameFromToken(token);
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new BadCredentialsException("User not found"));
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            user.getAuthorities()
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
             filterChain.doFilter(request, response);
-        }catch (Exception e){
-            filterChain.doFilter(request,response);
+
+        } catch (JwtException ex) {
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new BadCredentialsException("Invalid JWT", ex)
+            );
+
+        } catch (AuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(request, response, ex);
         }
     }
 }

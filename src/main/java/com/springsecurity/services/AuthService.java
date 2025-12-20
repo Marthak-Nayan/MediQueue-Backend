@@ -72,6 +72,6 @@ public class AuthService {
             throw new RuntimeException("Internal error! Rolling back...");
         }
 
-        return new SignUpResponseDto(user.getId(),placeName.getPlacename(), user.getUsername());
+        return new SignUpResponseDto(user.getId(),user.getUsername(),placeName.getPlacename());
     }
 }

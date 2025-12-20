@@ -1,0 +1,98 @@
+🔐 Authentication & Access Control (Done)
+Admin login & logout
+JWT-based authentication
+Role & permission management
+Password reset & account lock
+Secure access using Spring Security
+
+🏥 Hospital & System Configuration
+Manage hospital details (Name, Address, Contact)Get/Update   (Done)
+Enable / disable system modules
+Manage consultation fees default settings
+
+🏢 Department Management
+Add / update / delete departments
+Activate / deactivate departments
+Assign doctors to departments
+Set department-wise consultation charges
+View department-wise statistics
+
+👨‍⚕️ Doctor Management
+Add / update / delete doctor profiles
+Approve or reject doctor registrations
+Assign doctors to departments
+Set doctor availability & working schedule
+Enable / disable doctor accounts
+Set doctor consultation fees
+Mark doctor on leave
+
+🧑‍💼 Staff Management
+Add / manage receptionists
+Add / manage lab technicians
+Assign roles to staff
+Enable / disable staff accounts
+Reset staff passwords
+
+🧑‍🦱 Patient Management
+View all patient records
+Activate / deactivate patient accounts
+Soft delete patient records
+View patient appointment & visit history
+
+📅 Appointment Management
+View all appointments
+Manually create appointments
+Approve / reschedule / cancel appointments
+Override appointment conflicts
+Assign or reassign doctors
+Track appointment status
+
+🧪 Common Medical Report Master
+Add / update / delete medical report types
+Enable / disable report types
+Assign report to departments
+Set default report charges
+Manage standardized test/report list
+
+💊 Prescription & Template Management
+Manage prescription templates
+Configure default medicine lists
+Standardize diagnosis formats
+
+
+🧾 Billing & Payment Control (Optional)
+Configure billing rules
+Set service & report charges
+View billing records
+Generate invoices (PDF)
+Track payment status
+
+📊 Reports & Analytics
+Department-wise reports
+Doctor-wise performance reports
+Appointment statistics
+Patient visit trends
+Revenue analytics (if billing enabled)
+
+📢 Notification & Announcement Management
+Send system-wide notifications
+Publish internal announcements
+Enable / disable email alerts
+
+📂 Document & Template Management
+Manage invoice templates
+Manage report formats
+Upload hospital policy documents
+
+🗂️ Data Management & Logs
+View system activity logs
+Track user actions (audit trail)
+Backup & restore data
+Archive old records
+Soft delete management
+
+🔍 Search & Admin Utilities
+Global search (patient, doctor, appointment)
+Advanced filters
+Export data (CSV / Excel / PDF)
+Dashboard shortcuts

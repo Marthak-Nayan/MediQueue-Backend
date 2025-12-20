@@ -5,6 +5,7 @@ import com.springsecurity.Repository.UserRepository;
 import com.springsecurity.entities.PlaceName;
 import com.springsecurity.entities.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +48,12 @@ public class AuthUtils {
                 .parseSignedClaims(token)
                 .getPayload();
         return claims.getSubject();
+    }
+
+    public void validateToken(String token) throws JwtException {
+        Jwts.parser()
+                .verifyWith(getSecretKey())
+                .build()
+                .parseSignedClaims(token);
     }
 }

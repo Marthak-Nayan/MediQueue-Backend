@@ -10,4 +10,6 @@ public class CommonServices {
     //Get Total Patient number
 
     //Get Today Total Patient number
+
+    //
 }

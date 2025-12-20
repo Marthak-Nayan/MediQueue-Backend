@@ -8,10 +8,10 @@ import java.util.Optional;
 
 public interface PlaceRepository extends JpaRepository<PlaceName,Long> {
 
-    Optional<PlaceName> findByPlacename(String placename);
+    // Optional<PlaceName> findByPlacename(String placename);
 
     Optional<PlaceName> findById(Long placeId);
 
     Optional<PlaceName> findByUser(User userId);
-
+    //PlaceName findByUser(User userId);
 }

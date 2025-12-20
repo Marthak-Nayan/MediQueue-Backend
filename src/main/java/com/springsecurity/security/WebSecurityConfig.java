@@ -37,7 +37,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))   // ✅ MUST ADD THIS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -47,9 +47,9 @@ public class WebSecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/admin/adminDashBoard/**").hasRole("ADMIN")
-                        .requestMatchers("/doctor/doctorDashBoard/**").hasRole("DOCTOR")
-                        .requestMatchers("/recipient/recipientDashBoard/**").hasRole("RECIPIENT")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/doctor/**").hasRole("DOCTOR")
+                        .requestMatchers("/recipient/**").hasRole("RECIPIENT")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
