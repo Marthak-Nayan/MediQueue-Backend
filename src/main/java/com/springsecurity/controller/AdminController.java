@@ -1,10 +1,7 @@
 package com.springsecurity.controller;
 
 import com.springsecurity.DTO.*;
-import com.springsecurity.entities.Doctor;
-import com.springsecurity.entities.PlaceName;
-import com.springsecurity.entities.Recipient;
-import com.springsecurity.entities.User;
+import com.springsecurity.entities.*;
 import com.springsecurity.services.AdminServices;
 import com.springsecurity.services.AuthService;
 import com.springsecurity.services.DoctorServices;
@@ -24,18 +21,16 @@ public class AdminController {
     private final AdminServices adminServices;
 
 
+    //Place Tasks
     @GetMapping("/adminDashBoard")
     public String adminDashBoard(){
         return "adminDashBoard";
     }
-
     @GetMapping("/getAdminProfile")
     public ResponseEntity<PlaceResponse> getMyPlace(Authentication authentication) {
         String username = authentication.getName();
         return ResponseEntity.ok(adminServices.getPlaceByUsername(username));
     }
-
-
     @PostMapping("/updatePlace")
     public ResponseEntity<PlaceResponse> updatePlace(Authentication authentication,@RequestBody PlaceUpdateReq placeUpdateReq){
         User user =(User)  authentication.getPrincipal();
@@ -43,15 +38,35 @@ public class AdminController {
         return ResponseEntity.ok(placeResponse);
     }
 
+
+    //Department Tasks
     @PostMapping("/create-department")
     public ResponseEntity<CreateDepartmentResp> createDepartment(@RequestBody CreateDepartmentReq req, Authentication authentication ) {
         User user =(User) authentication.getPrincipal();
         return  ResponseEntity.ok(adminServices.createDepartment(req,user));
     }
+    @GetMapping("/getAllDepartment")
+    public List<CreateDepartmentResp> getAllDepartment(Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        return adminServices.getAllDepartment(user);
+    }
+    @PutMapping("/updateDepartment/{id}")
+    public CreateDepartmentResp updateDepartment(@PathVariable Long id,@RequestBody UpdateDepartmentReq req,Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        return adminServices.updateDepartment(id,req,user);
+    }
+    @DeleteMapping("/deleteDepartment/{id}")
+    public ResponseEntity<String> deleteDepartment(@PathVariable Long id,Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        adminServices.deleteDepartment(id,user);
+        return ResponseEntity.ok("Delete Department Successfully");
+    }
 
+    //
     @PostMapping("/create-doctor")
-    public ResponseEntity<CreateDoctorRespDto> createDoctor(@RequestBody CreateDoctorRequestDto req) {
-        return  ResponseEntity.ok(adminServices.createDoctor(req));
+    public ResponseEntity<CreateDoctorRespDto> createDoctor(@RequestBody CreateDoctorRequestDto req,Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return  ResponseEntity.ok(adminServices.createDoctor(req,user));
     }
 
 
@@ -71,4 +86,6 @@ public class AdminController {
     public List<Recipient> getAllRecipient(){
         return adminServices.getAllRecipient();
     }
+
+
 }

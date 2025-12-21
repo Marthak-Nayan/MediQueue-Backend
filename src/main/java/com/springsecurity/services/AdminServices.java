@@ -4,10 +4,12 @@ import com.springsecurity.DTO.*;
 import com.springsecurity.Repository.*;
 import com.springsecurity.entities.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +24,7 @@ public class AdminServices {
     private final PlaceRepository placeRepository;
     private final DoctorRepository doctorRepository;
     private final RecipientRepository recipientRepository;
-    private final DepartmentRepositary departmentRepositary;
+    private final DepartmentRepositary departmentRepository;
 
     public PlaceResponse getPlaceByUsername(String username){
         User currentUser = userRepository.findByUsername(username)
@@ -70,7 +72,7 @@ public class AdminServices {
     public CreateDepartmentResp createDepartment(CreateDepartmentReq req,User user){
         PlaceName placeName = placeRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Place not found"));
 
-        if(departmentRepositary.existsByDepartmentNameAndPlaceName(req.getDepartmentName(), placeName)){
+        if(departmentRepository.existsByDepartmentNameAndPlaceName(req.getDepartmentName(), placeName)){
             throw new RuntimeException("Department already exists");
         }
         Department department = Department.builder()
@@ -78,49 +80,138 @@ public class AdminServices {
                 .placeName(placeName)
                 .description(req.getDescription())
                 .active(true)
+                .place(placeName.getPlacename())
                 .build();
-        departmentRepositary.save(department);
+        departmentRepository.save(department);
+
         return CreateDepartmentResp.builder()
                 .id(department.getId())
                 .departmentName(department.getDepartmentName())
                 .description(department.getDescription())
                 .active(department.getActive())
+                .placeId(placeName.getId())
+                .placeName(placeName.getPlacename())
+                .build();
+    }
+
+    public CreateDepartmentResp updateDepartment(Long id,UpdateDepartmentReq req,User user) {
+
+        PlaceName placeName = placeRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Place not found"));
+
+        Department department = departmentRepository
+                .findByIdAndPlaceName(id, placeName)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+
+        if (req.getDepartmentName() != null &&
+                departmentRepository.existsByDepartmentNameAndPlaceNameAndIdNot(
+                        req.getDepartmentName(),
+                        placeName,
+                        id)) {
+
+            throw new RuntimeException("Department already exists");
+        }
+
+        if (req.getDepartmentName() != null) {
+            department.setDepartmentName(req.getDepartmentName());
+        }
+
+        if (req.getDescription() != null) {
+            department.setDescription(req.getDescription());
+        }
+
+        if (req.getActive() != null){
+            department.setActive(req.getActive());
+        }
+
+        departmentRepository.save(department);
+
+        return CreateDepartmentResp.builder()
+                .id(department.getId())
+                .departmentName(department.getDepartmentName())
+                .description(department.getDescription())
+                .active(department.getActive())
+                .placeId(placeName.getId())
+                .placeName(placeName.getPlacename())
+                .build();
+    }
+
+    public void deleteDepartment(Long depId,User user){
+        PlaceName placeName = placeRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Place not found"));
+        Department department = departmentRepository
+                .findByIdAndPlaceName(depId, placeName)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+        department.setActive(false);
+        departmentRepository.save(department);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public CreateDoctorRespDto createDoctor(CreateDoctorRequestDto req, User user2) {
+
+        User user = userRepository.findByUsername(req.getUsername()).orElse(null);
+        if (user != null) throw new IllegalArgumentException("Doctor already exists");
+
+        // Get place
+        PlaceName placeName = placeRepository.findByUser(user2)
+                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
+
+
+        user = userRepository.save(User.builder()
+                .role("ROLE_"+req.getRole())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .build()
+        );
+
+
+        // Load departments from DB
+        List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
+
+        // Optional: validate departments belong to the same place
+        for (Department dep : departments) {
+            if (!dep.getPlaceName().getId().equals(placeName.getId())) {
+                throw new RuntimeException("Department does not belong to user's place");
+            }
+        }
+
+        // Create doctor
+        Doctor doctor = Doctor.builder()
+                .doctorName(req.getDoctorName())
+                .mobileNo(req.getMobileNo())
+                .designation(req.getDesignation())
+                .dateOfBirth(req.getDob())
+                .email(req.getEmail())
+                .gender(req.getGender())
+                .experienceYears(req.getExperienceYears())
+                .joiningDate(req.getJoiningDate())
+                .active(false)
+                .employmentType(req.getEmploymentType())
+                .address(req.getAddress())
+                .registrationNumber(req.getRegistrationNo())
+                .qualification(req.getQualification())
+                .user(user)
+                .placeName(placeName)
+                .departments(departments)  // JPA managed entities
+                .build();
+
+        doctorRepository.save(doctor);
+
+        return CreateDoctorRespDto.builder()
+                .id(doctor.getId())
+                .doctorName(doctor.getDoctorName())
+                .role(user.getRole())
+                .mobileNo(doctor.getMobileNo())
+                .gender(doctor.getGender())
+                .email(doctor.getEmail())
+                .registrationNo(doctor.getRegistrationNumber())
+                .username(user.getUsername())
+                .depIds(doctor.getDepartments().stream().map(Department::getId).toList())
+                .placeId(placeName.getId())
                 .build();
     }
 
 
-    public CreateDoctorRespDto createDoctor(CreateDoctorRequestDto createDoctorRequestDto){
-        User user = userRepository.findByUsername(createDoctorRequestDto.getUsername()).orElse(null);
-        if(user != null) throw new IllegalArgumentException("User Already Exist");
-
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName(); // logged-in username
-
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        PlaceName placeName = placeRepository.findByUser(currentUser)
-                .orElseThrow(() -> new RuntimeException("Place not found"));
-
-
-        user = userRepository.save(User.builder()
-                .role(createDoctorRequestDto.getRole())
-                .username(createDoctorRequestDto.getUsername())
-                .password(passwordEncoder.encode(createDoctorRequestDto.getPassword()))
-                .build()
-        );
-
-        Doctor doctor = doctorRepository.save(Doctor.builder()
-                .doctorname(createDoctorRequestDto.getDoctorName())
-                .user(user)
-                .placeName(placeName)
-                .specialties(createDoctorRequestDto.getSpeciality())
-                .build()
-        );
-
-        return new CreateDoctorRespDto(doctor.getId(), doctor.getDoctorname(), user.getUsername());
-    }
 
     public CreateRecipientResDto createRecipient(CreateRecipientReqDto createRecipientReqDto){
         User user = userRepository.findByUsername(createRecipientReqDto.getUsername()).orElse(null);
@@ -161,6 +252,25 @@ public class AdminServices {
     public List<Recipient> getAllRecipient(){
         return recipientRepository.findAll();
     }
+
+    public List<CreateDepartmentResp> getAllDepartment(User user){
+        PlaceName placeName = placeRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Place not found"));
+        List<Department> departments = departmentRepository.findByPlaceName(placeName);
+
+
+        return  departments.stream()
+                .map(department -> CreateDepartmentResp.builder()
+                        .id(department.getId())
+                        .departmentName(department.getDepartmentName())
+                        .description(department.getDescription())
+                        .active(department.getActive())
+                        .placeName(department.getPlace())
+                        .placeId(department.getPlaceName().getId())
+                        .build()
+                )
+                .toList();
+    }
+
 
 
     /*

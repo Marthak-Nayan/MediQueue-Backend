@@ -7,13 +7,14 @@ Secure access using Spring Security
 
 🏥 Hospital & System Configuration
 Manage hospital details (Name, Address, Contact)Get/Update   (Done)
-Enable / disable system modules
-Manage consultation fees default settings
+Enable / disable system modules //Not need current
+Manage consultation fees default settings //Not need current
 
 🏢 Department Management
+Get All Department(Done)
 Add / update / delete departments
-Activate / deactivate departments
-Assign doctors to departments
+Activate / deactivate departments 
+Assign doctors to departments 
 Set department-wise consultation charges
 View department-wise statistics
 
@@ -39,7 +40,7 @@ Activate / deactivate patient accounts
 Soft delete patient records
 View patient appointment & visit history
 
-📅 Appointment Management
+📅 Appointment Management ( this not handle by ADMIN)
 View all appointments
 Manually create appointments
 Approve / reschedule / cancel appointments

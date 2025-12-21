@@ -1,5 +1,6 @@
 package com.springsecurity.DTO;
 
+import com.springsecurity.entities.PlaceName;
 import lombok.*;
 
 @Data
@@ -12,5 +13,6 @@ public class CreateDepartmentResp {
     private String departmentName;
     private String description;
     private Boolean active;
-
+    private Long placeId;
+    private String placeName;
 }
