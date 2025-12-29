@@ -73,6 +73,9 @@ public class Doctor {
             inverseJoinColumns = @JoinColumn(name = "department_id")
     )
     private List<Department> departments;
+
+    @Version
+    private int version;
 }
 
 

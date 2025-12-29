@@ -3,14 +3,11 @@ package com.springsecurity.controller;
 import com.springsecurity.DTO.*;
 import com.springsecurity.entities.*;
 import com.springsecurity.services.AdminServices;
-import com.springsecurity.services.AuthService;
-import com.springsecurity.services.DoctorServices;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.Doc;
 import java.util.List;
 
 @RestController
@@ -21,7 +18,7 @@ public class AdminController {
     private final AdminServices adminServices;
 
 
-    //Place Tasks
+    //Place Controllers
     @GetMapping("/adminDashBoard")
     public String adminDashBoard(){
         return "adminDashBoard";
@@ -39,7 +36,7 @@ public class AdminController {
     }
 
 
-    //Department Tasks
+    //Department Controllers
     @PostMapping("/create-department")
     public ResponseEntity<CreateDepartmentResp> createDepartment(@RequestBody CreateDepartmentReq req, Authentication authentication ) {
         User user =(User) authentication.getPrincipal();
@@ -62,30 +59,44 @@ public class AdminController {
         return ResponseEntity.ok("Delete Department Successfully");
     }
 
-    //
+    //Doctor Controllers
     @PostMapping("/create-doctor")
     public ResponseEntity<CreateDoctorRespDto> createDoctor(@RequestBody CreateDoctorRequestDto req,Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         return  ResponseEntity.ok(adminServices.createDoctor(req,user));
     }
-
-
-    @PostMapping("/create-recipient")
-    public ResponseEntity<CreateRecipientResDto> createRecipient(@RequestBody CreateRecipientReqDto req) {
-        return  ResponseEntity.ok(adminServices.createRecipient(req));
+    @GetMapping("/getAllDoctor")
+    public List<DoctorRecordsResp> getAllDoctors(Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        return adminServices.getAllDoctors(user);
+    }
+    @PutMapping("/getSpecificDoctor/{id}")
+    public DoctorRecordsResp getSpecificDoctor(@PathVariable Long id,Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        return adminServices.getSpecificDoctor(id,user);
     }
 
 
-    @GetMapping("/getAllDoctors")
-    public List<Doctor> getAllDoctors(){
-        return adminServices.getAllDoctors();
+    //Staff Controllers
+    @PostMapping("/create-staff")
+    public ResponseEntity<CreateStaffResDto> createRecipient(@RequestBody CreateStafftReqDto req, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return  ResponseEntity.ok(adminServices.createStaff(req,user));
     }
-
-
-    @GetMapping("/getAllRecipient")
-    public List<Recipient> getAllRecipient(){
-        return adminServices.getAllRecipient();
-    }
-
+//    @GetMapping("/getAllStaff")
+//    public List<CreateStaffResDto> getAllStaff(Authentication authentication){
+//        User user = (User) authentication.getPrincipal();
+//        return adminServices.getAllStaff(user);
+//    }
+//    @PutMapping("/getAllSpecificStaffRole/{staffRole}")
+//    public List<CreateStaffResDto> getAllSpecificStaffRole(@PathVariable String staffRole, Authentication authentication){
+//        User user = (User) authentication.getPrincipal();
+//        return adminServices.getAllSpecificStaffRole(user,staffRole);
+//    }
+//    @PutMapping("/getSpecificStaff/{id}")
+//    public CreateStaffResDto getSpecificStaff(@PathVariable Long id, Authentication authentication){
+//        User user = (User) authentication.getPrincipal();
+//        return adminServices.getSpecificStaff(user,id);
+//    }
 
 }

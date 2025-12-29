@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AllDoctorRecordsResp {
+public class DoctorRecordsResp {
 
     private Long id;
     private String doctorName;

@@ -7,25 +7,26 @@ Secure access using Spring Security
 
 🏥 Hospital & System Configuration
 Manage hospital details (Name, Address, Contact)Get/Update   (Done)
-Enable / disable system modules //Not need current
-Manage consultation fees default settings //Not need current
+Enable / disable system modules //Not need current(Optional)
+Manage consultation fees default settings //Not need current(Optional)
 
 🏢 Department Management
 Get All Department(Done)
-Add / update / delete departments
-Activate / deactivate departments 
-Assign doctors to departments 
-Set department-wise consultation charges
-View department-wise statistics
+Add / update / delete departments(Done)
+Activate / deactivate departments(Optional) 
+Assign doctors to departments (Done)
+Set department-wise consultation charges(Optional)
+View department-wise statistics(Optional)
 
 👨‍⚕️ Doctor Management
-Add / update / delete doctor profiles
-Approve or reject doctor registrations
-Assign doctors to departments
-Set doctor availability & working schedule
-Enable / disable doctor accounts
-Set doctor consultation fees
-Mark doctor on leave
+Get All/Specific Doctor with Department Name List(Done)
+Add doctor profiles(Done)
+update / delete doctor profiles(Remaining, Do Later)
+Assign doctors to departments(Done)
+Set doctor availability & working schedule(Optional)
+Enable / disable doctor accounts(Optional)
+Set doctor consultation fees(Optional)
+Mark doctor on leave(Optional)
 
 🧑‍💼 Staff Management
 Add / manage receptionists

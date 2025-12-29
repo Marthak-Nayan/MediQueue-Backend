@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,4 +38,8 @@ public class PlaceName {
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true, updatable = false)
     private User user;
+
+    @OneToMany(mappedBy = "placeName", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Department> departments = new ArrayList<>();
+
 }

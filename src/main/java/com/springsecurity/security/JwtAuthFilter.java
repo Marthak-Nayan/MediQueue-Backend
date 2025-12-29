@@ -39,7 +39,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         log.info("Incoming request: {}", path);
 
         // Public endpoints
-        if ("/auth/login".equals(path) || "/auth/signup".equals(path)) {
+        if (path.startsWith("/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }

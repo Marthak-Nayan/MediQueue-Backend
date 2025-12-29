@@ -12,5 +12,4 @@ public class CreateDepartmentReq {
     private String departmentName;
 
     private String description;
-
 }

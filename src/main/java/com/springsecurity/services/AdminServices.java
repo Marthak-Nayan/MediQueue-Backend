@@ -4,15 +4,11 @@ import com.springsecurity.DTO.*;
 import com.springsecurity.Repository.*;
 import com.springsecurity.entities.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +19,7 @@ public class AdminServices {
     private final UserRepository userRepository;
     private final PlaceRepository placeRepository;
     private final DoctorRepository doctorRepository;
-    private final RecipientRepository recipientRepository;
+    private final StaffRepository staffRepository;
     private final DepartmentRepositary departmentRepository;
 
     public PlaceResponse getPlaceByUsername(String username){
@@ -69,6 +65,7 @@ public class AdminServices {
                 .build();
     }
 
+    //Department Services
     public CreateDepartmentResp createDepartment(CreateDepartmentReq req,User user){
         PlaceName placeName = placeRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Place not found"));
 
@@ -146,113 +143,6 @@ public class AdminServices {
         departmentRepository.save(department);
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public CreateDoctorRespDto createDoctor(CreateDoctorRequestDto req, User user2) {
-
-        User user = userRepository.findByUsername(req.getUsername()).orElse(null);
-        if (user != null) throw new IllegalArgumentException("Doctor already exists");
-
-        // Get place
-        PlaceName placeName = placeRepository.findByUser(user2)
-                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
-
-
-        user = userRepository.save(User.builder()
-                .role("ROLE_"+req.getRole())
-                .username(req.getUsername())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .build()
-        );
-
-
-        // Load departments from DB
-        List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
-
-        // Optional: validate departments belong to the same place
-        for (Department dep : departments) {
-            if (!dep.getPlaceName().getId().equals(placeName.getId())) {
-                throw new RuntimeException("Department does not belong to user's place");
-            }
-        }
-
-        // Create doctor
-        Doctor doctor = Doctor.builder()
-                .doctorName(req.getDoctorName())
-                .mobileNo(req.getMobileNo())
-                .designation(req.getDesignation())
-                .dateOfBirth(req.getDob())
-                .email(req.getEmail())
-                .gender(req.getGender())
-                .experienceYears(req.getExperienceYears())
-                .joiningDate(req.getJoiningDate())
-                .active(false)
-                .employmentType(req.getEmploymentType())
-                .address(req.getAddress())
-                .registrationNumber(req.getRegistrationNo())
-                .qualification(req.getQualification())
-                .user(user)
-                .placeName(placeName)
-                .departments(departments)  // JPA managed entities
-                .build();
-
-        doctorRepository.save(doctor);
-
-        return CreateDoctorRespDto.builder()
-                .id(doctor.getId())
-                .doctorName(doctor.getDoctorName())
-                .role(user.getRole())
-                .mobileNo(doctor.getMobileNo())
-                .gender(doctor.getGender())
-                .email(doctor.getEmail())
-                .registrationNo(doctor.getRegistrationNumber())
-                .username(user.getUsername())
-                .depIds(doctor.getDepartments().stream().map(Department::getId).toList())
-                .placeId(placeName.getId())
-                .build();
-    }
-
-
-
-    public CreateRecipientResDto createRecipient(CreateRecipientReqDto createRecipientReqDto){
-        User user = userRepository.findByUsername(createRecipientReqDto.getUsername()).orElse(null);
-        if(user != null) throw new IllegalArgumentException("User Already Exist");
-
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName(); // logged-in username
-
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        PlaceName placeName = placeRepository.findByUser(currentUser)
-                .orElseThrow(() -> new RuntimeException("Place not found"));
-
-
-        user = userRepository.save(User.builder()
-                .role(createRecipientReqDto.getRole())
-                .username(createRecipientReqDto.getUsername())
-                .password(passwordEncoder.encode(createRecipientReqDto.getPassword()))
-                .build()
-        );
-
-        Recipient recipient = recipientRepository.save(Recipient.builder()
-                .recipientName(createRecipientReqDto.getRecipientName())
-                .user(user)
-                .placeName(placeName)
-                .build()
-        );
-
-        return new CreateRecipientResDto(recipient.getId(), recipient.getRecipientName(), user.getUsername());
-    }
-
-    public List<Doctor> getAllDoctors(){
-        return doctorRepository.findAll();
-    }
-
-    public List<Recipient> getAllRecipient(){
-        return recipientRepository.findAll();
-    }
-
     public List<CreateDepartmentResp> getAllDepartment(User user){
         PlaceName placeName = placeRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Place not found"));
         List<Department> departments = departmentRepository.findByPlaceName(placeName);
@@ -272,6 +162,177 @@ public class AdminServices {
     }
 
 
+
+    //Doctor Tasks
+    @Transactional(rollbackFor = Exception.class)
+    public CreateDoctorRespDto createDoctor(CreateDoctorRequestDto req, User user2) {
+
+        User user = userRepository.findByUsername(req.getUsername()).orElse(null);
+        if (user != null) throw new IllegalArgumentException("Doctor already exists");
+
+        // Get place
+        PlaceName placeName = placeRepository.findByUser(user2)
+                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
+        user = userRepository.save(User.builder()
+                .role("ROLE_"+req.getRole())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .build()
+        );
+        // Load departments from DB
+        List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
+
+        // Optional: validate departments belong to the same place
+        for (Department dep : departments) {
+            if (!dep.getPlaceName().getId().equals(placeName.getId())) {
+                throw new RuntimeException("Department does not belong to user's place");
+            }
+        }
+        // Create doctor
+        Doctor doctor = Doctor.builder()
+                .doctorName(req.getDoctorName())
+                .mobileNo(req.getMobileNo())
+                .designation(req.getDesignation())
+                .dateOfBirth(req.getDob())
+                .email(req.getEmail())
+                .gender(req.getGender())
+                .experienceYears(req.getExperienceYears())
+                .joiningDate(req.getJoiningDate())
+                .active(false)
+                .employmentType(req.getEmploymentType())
+                .address(req.getAddress())
+                .registrationNumber(req.getRegistrationNo())
+                .qualification(req.getQualification())
+                .user(user)
+                .placeName(placeName)
+                .departments(departments)  // JPA managed entities
+                .build();
+        doctorRepository.save(doctor);
+
+        return CreateDoctorRespDto.builder()
+                .id(doctor.getId())
+                .doctorName(doctor.getDoctorName())
+                .role(user.getRole())
+                .mobileNo(doctor.getMobileNo())
+                .gender(doctor.getGender())
+                .email(doctor.getEmail())
+                .registrationNo(doctor.getRegistrationNumber())
+                .username(user.getUsername())
+                .depIds(doctor.getDepartments().stream().map(Department::getId).toList())
+                .placeId(placeName.getId())
+                .build();
+    }
+
+    public List<DoctorRecordsResp> getAllDoctors(User user){
+        PlaceName placeName = placeRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
+
+        List<Doctor> doctors = doctorRepository.findByPlaceName(placeName);
+
+        return doctors.stream().map(doctor -> DoctorRecordsResp.builder()
+                .id(doctor.getId())
+                .placeId(doctor.getPlaceName().getId())
+                .role(doctor.getUser().getRole())
+                .username(doctor.getUser().getUsername())
+                .departmentName(
+                        doctor.getDepartments()
+                                .stream()
+                                .map(Department::getDepartmentName)
+                                .toList()
+                )
+                .doctorName(doctor.getDoctorName())
+                .build()
+        ).toList();
+    }
+
+    public DoctorRecordsResp getSpecificDoctor(Long id,User user){
+        PlaceName placeName = placeRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
+
+        Doctor doctor = doctorRepository.getByIdAndPlaceName(id,placeName).orElseThrow(() -> new RuntimeException("Doctor was not Found"));
+        return DoctorRecordsResp.builder()
+                .id(doctor.getId())
+                .placeId(doctor.getPlaceName().getId())
+                .role(doctor.getUser().getRole())
+                .username(doctor.getUser().getUsername())
+                .departmentName(
+                        doctor.getDepartments()
+                                .stream()
+                                .map(Department::getDepartmentName)
+                                .toList()
+                )
+                .doctorName(doctor.getDoctorName())
+                .build();
+    }
+
+
+
+
+    //Staff Services Operations
+    public CreateStaffResDto createStaff(CreateStafftReqDto req, User user2){
+        User user = userRepository.findByUsername(req.getUsername()).orElse(null);
+        if (user != null) throw new IllegalArgumentException("Staff already exists");
+
+        // Get place
+        PlaceName placeName = placeRepository.findByUser(user2)
+                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
+
+
+        user = userRepository.save(User.builder()
+                .role("ROLE_"+req.getRole())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .build()
+        );
+
+        Staff staff = staffRepository.save(Staff.builder()
+                        .staffName(req.getStaffName())
+                        .gender(req.getGender())
+                        .email(req.getEmail())
+                        .role(user.getRole())
+                        .dob(req.getDob())
+                        .address(req.getAddress())
+                        .employmentType(req.getEmploymentType())
+                        .experienceYears(req.getExperienceYears())
+                        .joiningDate(req.getJoiningDate())
+                        .mobileNo(req.getMobileNo())
+                        .active(req.getActive())
+                        .user(user)
+                        .placeName(placeName)
+                        .build()
+        );
+
+        return CreateStaffResDto.builder()
+                .id(staff.getId())
+                .username(user.getUsername())
+                .placeId(staff.getPlaceName().getId())
+                .role(staff.getRole())
+                .joiningDate(staff.getJoiningDate())
+                .active(staff.getActive())
+                .email(staff.getEmail())
+                .employmentType(req.getEmploymentType())
+                .mobileNo(staff.getMobileNo())
+                .staffName(staff.getStaffName())
+                .build();
+    }
+
+
+//    public List<CreateStaffResDto> getAllStaff(User user){
+//        PlaceName placeName = placeRepository.findByUser(user)
+//                .orElseThrow(() -> new RuntimeException("User not belongs to this Place"));
+//
+//        List<Staff> staff = staffRepository.findByPlaceName(placeName);
+//
+//        return staff.stream().map(Staff -> CreateStaffResDto.builder()
+//                .
+//                .build();
+//    }
+//    public List<CreateStaffResDto> getAllSpecificStaffRole(User user,String staffRole){
+//
+//    }
+//    public CreateStaffResDto getSpecificStaff(User user,Long id){
+//
+//    }
 
     /*
     get Place details

@@ -1,12 +1,8 @@
 package com.springsecurity.services;
 
 import com.springsecurity.DTO.*;
-import com.springsecurity.Repository.DoctorRepository;
-import com.springsecurity.Repository.PlaceRepository;
-import com.springsecurity.Repository.UserRepository;
-import com.springsecurity.entities.Doctor;
-import com.springsecurity.entities.PlaceName;
-import com.springsecurity.entities.User;
+import com.springsecurity.Repository.*;
+import com.springsecurity.entities.*;
 import com.springsecurity.security.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.Exception;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,6 +30,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PlaceRepository placeRepository;
+    private final DepartmentRepositary departmentRepository;
+    private final MasterDepartmentRepo masterDepartmentRepo;
 
     @Transactional(rollbackFor = Exception.class)
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
@@ -66,6 +66,27 @@ public class AuthService {
                 .user(user)
                 .build()
         );
+        List<Long> deptIds = signupRequestDto.getDepartmentIds()
+                .stream()
+                .map(DepartmentDto::getId)
+                .toList();
+
+        List<MasterDepartment> masterdepartments = masterDepartmentRepo.findAllById(deptIds);
+        List<Department> departments = new ArrayList<>();
+
+
+        for(MasterDepartment department : masterdepartments){
+            Department depart = departmentRepository.save(Department.builder()
+                    .departmentName(department.getName())
+                    .placeName(placeName)
+                    .description(department.getDescription())
+                    .active(true)
+                    .place(placeName.getPlacename())
+                    .build());
+            departments.add(depart);
+        }
+        placeName.setDepartments(departments);
+        placeRepository.save(placeName);
 
         // Simulate internal error
         if ("error".equals(signupRequestDto.getPlacename())) {
@@ -73,5 +94,9 @@ public class AuthService {
         }
 
         return new SignUpResponseDto(user.getId(),user.getUsername(),placeName.getPlacename());
+    }
+
+    public List<MasterDepartment> getAllDepartments(){
+        return masterDepartmentRepo.findAll();
     }
 }
