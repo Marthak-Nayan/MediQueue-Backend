@@ -45,14 +45,13 @@ public class AuthService {
 
         return new LoginResponseDto(token, user.getRole(),user.getId());
     }
-
     @Transactional(rollbackFor = Exception.class)
     public SignUpResponseDto signup(SignUpRequestDto signupRequestDto) {
         User user = userRepository.findByUsername(signupRequestDto.getUsername()).orElse(null);
 
         if(user != null) throw new IllegalArgumentException("User Already Exist");
 
-         user = userRepository.save(User.builder()
+        user = userRepository.save(User.builder()
                 .role("ROLE_ADMIN")
                 .username(signupRequestDto.getUsername())
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))

@@ -46,7 +46,9 @@ public class WebSecurityConfig {
                         .authenticationEntryPoint(customAuthEntryPoint)  // 401
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**","/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/doctor/**").hasRole("DOCTOR")
                         .requestMatchers("/recipient/**").hasRole("RECIPIENT")
