@@ -29,9 +29,10 @@ Set doctor consultation fees(Optional)
 Mark doctor on leave(Optional)
 
 🧑‍💼 Staff Management
-Add / manage staff
+Add / manage receptionists
+Add / manage lab technicians
 Assign roles to staff
-Enable / disable staff accounts(Optional)
+Enable / disable staff accounts
 Reset staff passwords
 
 🧑‍🦱 Patient Management
